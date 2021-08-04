@@ -313,7 +313,7 @@ export async function findUserIdxFromUid(uid:string) {
     try {
         const [queryResult] = await pool.promise().query(searchUserIdxSql, [uid]);
         if(!queryResult[0]) {
-            console.error('no user found');
+            console.error('no user idx found for firebase_uid:', uid);
             return -1;
         } else {
             return queryResult[0].idx;
