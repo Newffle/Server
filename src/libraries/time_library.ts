@@ -18,7 +18,7 @@ export function checkWorkingTime(timeZone:string = "Asia/Seoul") {
     }
     if(worktime) {
         const hour:number = parseInt(((new Date()).toLocaleTimeString("ko-KR", {timeZone: timeZone, hour: 'numeric', minute: 'numeric', hour12: false})).split(':')[0]);
-        if(hour < 8 || hour === 12 || hour >= 16) {
+        if(hour < 8 || hour >= 17) {
             worktime = false;
         }
     }
