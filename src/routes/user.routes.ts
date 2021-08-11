@@ -165,4 +165,27 @@ userRouter.post('/account_settings', async(req:Request, res:Response) => {
    res.json(user);
 });
 
+userRouter.get('/letter_subscription', async(req:Request, res:Response) => {
+   const categories = await getCategories();
+   res.json({
+       'idxs': categories['idxs'],
+       'categories': categories['categories'],
+   });
+});
+
+userRouter.post('/letter_subscription', async(req:Request, res:Response) => {
+    const data:any = req.body;
+    const uid:string = data.uid;
+    const userIdx:number = await findUserIdxFromUid(uid);
+    const sql = "INSERT INTO `letter_subscriptions_temp`(`user_idx`, `name`, `birthday`, `training_start_date`, `phone_number`, `memo`, `news_categories`, `stocks`, `cryptocurrencies`, `others`)" +
+        " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    try {
+        const [insertResult] = await pool.promise().query(sql, [userIdx, data.name, data.birthday, data.trainingStartDate, data.phoneNumber, data.memo, data.newsCategories.join(), data.stocks, data.cryptocurrencies, data.others]);
+        res.sendStatus(200);
+    } catch(err) {
+        console.error(err.message);
+        res.sendStatus(400);
+    }
+});
+
 export default userRouter;

@@ -59,19 +59,20 @@ export async function getCategories(onlyVisible:boolean = true, categories:strin
     }
     try {
         const [queryResults] = await pool.promise().query(categoriesSql);
+        let idxs:number[] = [];
         let categories:string[] = [];
         let topics:string[] = [];
         queryResults.forEach((result:RowDataPacket) => {
             if(result.category && result.category != '') {
+                idxs.push(result.idx);
                 categories.push(result.category);
-            }
-            if(result.fcm_topic && result.fcm_topic != '') {
                 topics.push(result.fcm_topic);
             }
         })
         return {
-          'categories': categories,
-          'topics': topics
+            'idxs': idxs,
+            'categories': categories,
+            'topics': topics
         };
     } catch(err) {
         console.error(err.message);
