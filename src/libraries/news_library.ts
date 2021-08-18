@@ -1,4 +1,5 @@
 import {RowDataPacket} from "mysql";
+import {datetimeString} from "./time_library";
 
 const { pool } = require('../helpers/database');
 
@@ -210,15 +211,17 @@ export async function getPopularNews(limit:number = 5) {
  * @param limit
  */
 export async function getPopularNewsWithInteractions(userIdx:number, limit:number = 5) {
-    let searchPopularNewsSql = "SELECT `user_view_logs`.`article_idx`, COUNT(*) as `count`," +
+    let searchPopularNewsSql = "SELECT `user_view_logs`.`article_idx`," +
+        " (SELECT COUNT(DISTINCT user_idx) FROM user_view_logs as uv WHERE uv.article_type='news' AND uv.article_idx=user_view_logs.article_idx) as `count`," +
         " (SELECT COUNT(*) FROM user_view_logs as uv_logs WHERE uv_logs.user_idx=? AND uv_logs.article_type='news' AND uv_logs.article_idx=user_view_logs.article_idx) as my_views," +
         " `news`.`idx` as news_idx, `news`.`title`, `news`.`from`, `news`.`url`, `news`.`body`, `news`.`created_time`," +
         " TIMESTAMPDIFF(MINUTE, news.created_time, CURRENT_TIMESTAMP) as diff_minutes" +
         " FROM `user_view_logs`" +
         " JOIN `news` ON news.idx=user_view_logs.article_idx" +
-        " WHERE `article_type`='news' GROUP BY `user_view_logs`.`article_idx` ORDER BY `count` DESC LIMIT ?";
+        " WHERE `article_type`='news' AND news.created_time > ?" +
+        " GROUP BY `user_view_logs`.`article_idx` ORDER BY `count` DESC, `article_idx` DESC LIMIT ?";
     try {
-        const [queryResults] = await pool.promise().query(searchPopularNewsSql, [userIdx, limit]);
+        const [queryResults] = await pool.promise().query(searchPopularNewsSql, [userIdx, datetimeString("ISO", {changeDateBy: -1}), limit]);
         for(let i:number = 0; i < queryResults.length; i++) {
             let diffMinutes: number = queryResults[i].diff_minutes;
             let diffHours: number = 0;
