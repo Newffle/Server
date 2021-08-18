@@ -1,3 +1,5 @@
+import {datetimeString} from "./time_library";
+
 const { pool } = require('../helpers/database');
 
 export async function getPartnerInsights(limit:number = -1, offset:number = 0) {
@@ -37,4 +39,16 @@ export async function getMediaSummaries(limit:number = -1, offset:number = 0) {
         console.error(err.message);
         throw err;
     }
+}
+
+export async function getNativeBanners() {
+    let getBannerSql = "SELECT * FROM `native_banners` WHERE `status`=1 AND `show_until` > ? ORDER BY priority ASC";
+    try {
+        const [queryResults] = await pool.promise().query(getBannerSql, [datetimeString("ISO", {})]);
+        return queryResults;
+    } catch(err) {
+        console.error(err.message);
+        throw err;
+    }
+
 }

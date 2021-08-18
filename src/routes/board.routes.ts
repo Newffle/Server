@@ -1,5 +1,5 @@
 import {Request, Response, Router} from 'express';
-import {getMediaSummaries, getPartnerInsights} from "../libraries/board_library";
+import {getMediaSummaries, getNativeBanners, getPartnerInsights} from "../libraries/board_library";
 import {getPopularNewsWithInteractions} from "../libraries/news_library";
 import {getUserCurrentPlan} from "../libraries/user_library";
 import {findUserIdxFromUid} from "../libraries/account_library";
@@ -15,12 +15,14 @@ boardRouter.post('/meta', async (req: Request, res: Response) => {
     const popularNews = await getPopularNewsWithInteractions(userIdx);
     const insights = await getPartnerInsights(3);
     const summaries = await getMediaSummaries(3);
+    const banners = await getNativeBanners();
 
     res.json({
         'userPlan': userPlan,
         'popularNews': popularNews,
         'insights': insights,
         'summaries': summaries,
+        'banners': banners,
     });
 });
 
