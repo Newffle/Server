@@ -218,7 +218,7 @@ export async function getPopularNewsWithInteractions(userIdx:number, limit:numbe
         " TIMESTAMPDIFF(MINUTE, news.created_time, CURRENT_TIMESTAMP) as diff_minutes" +
         " FROM `user_view_logs`" +
         " JOIN `news` ON news.idx=user_view_logs.article_idx" +
-        " WHERE `article_type`='news' AND news.created_time > ?" +
+        " WHERE `article_type`='news' AND user_view_logs.viewed_time > ?" +
         " GROUP BY `user_view_logs`.`article_idx` ORDER BY `count` DESC, `article_idx` DESC LIMIT ?";
     try {
         const [queryResults] = await pool.promise().query(searchPopularNewsSql, [userIdx, datetimeString("ISO", {changeDateBy: -1}), limit]);
