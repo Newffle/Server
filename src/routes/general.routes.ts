@@ -13,7 +13,7 @@ generalRouter.get('/meta/:screen', async(req:Request, res:Response) => {
         let worktime:boolean = checkWorkingTime();
 
         // 메뉴 항목들 불러오기
-        let drawerMenuItemsSql = "SELECT * FROM `drawer_menu_items` WHERE `status`=1";
+        let drawerMenuItemsSql = "SELECT * FROM `drawer_menu_items` WHERE `status`=1 ORDER BY `order` ASC";
         let menuNames:string[] = [];
         let menuRoutes:string[] = [];
         try {
