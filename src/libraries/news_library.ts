@@ -214,7 +214,7 @@ export async function getPopularNewsWithInteractions(userIdx:number, limit:numbe
     let searchPopularNewsSql = "SELECT `user_view_logs`.`article_idx`," +
         " (SELECT COUNT(DISTINCT user_idx) FROM user_view_logs as uv WHERE uv.article_type='news' AND uv.article_idx=user_view_logs.article_idx) as `count`," +
         " (SELECT COUNT(*) FROM user_view_logs as uv_logs WHERE uv_logs.user_idx=? AND uv_logs.article_type='news' AND uv_logs.article_idx=user_view_logs.article_idx) as my_views," +
-        " `news`.`idx` as news_idx, `news`.`title`, `news`.`from`, `news`.`url`, `news`.`body`, `news`.`created_time`," +
+        " `news`.`idx` as news_idx, `news`.`title`, `news`.`from`, `news`.`url`, `news`.`created_time`," +
         " TIMESTAMPDIFF(MINUTE, news.created_time, CURRENT_TIMESTAMP) as diff_minutes" +
         " FROM `user_view_logs`" +
         " JOIN `news` ON news.idx=user_view_logs.article_idx" +
