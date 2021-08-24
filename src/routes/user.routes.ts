@@ -7,7 +7,7 @@ import {
 import {
     getUserCategorySubscriptionData,
     getUserPushOnOff, setUserCategoryNotificationOption,
-    setUserPushOnOff, insertReadLog
+    setUserPushOnOff, insertReadLog, getUserSavedArticles, checkUserSavedArticle, saveOrUnsaveArticle
 } from "../libraries/user_library";
 //import {subscribeToOSAndroidTopic} from "../libraries/push_library";
 import {checkUserVerification, findUserIdxFromUid, getUserDataFromUid} from "../libraries/account_library";
@@ -69,7 +69,10 @@ userRouter.post('/read/:type', async (req: Request, res: Response) => {
 
     if(articleIdx) {
         await insertReadLog(userIdx, type, articleIdx);
-        res.sendStatus(200);
+        const alreadySaved:boolean = await checkUserSavedArticle(userIdx, type, articleIdx);
+        res.json({
+            saved: alreadySaved
+        });
     } else {
         res.sendStatus(403);
     }
@@ -163,6 +166,59 @@ userRouter.post('/account_settings', async(req:Request, res:Response) => {
    const user:any = await getUserDataFromUid(uid);
    user.emailVerified = await checkUserVerification(user.idx, 'email');
    res.json(user);
+});
+
+/**
+ *
+ */
+userRouter.post('/saved_items', async(req:Request, res:Response) => {
+    const data:any = req.body;
+    const uid:string = data.uid;
+    const userIdx:number = await findUserIdxFromUid(uid);
+    let limit:number = data.limit;
+    let offset:number = data.offset;
+    if(limit == null || limit < 0) {
+        limit = 10;
+    }
+    if(offset == null || offset < 0) {
+        offset = 0;
+    }
+    const articles = await getUserSavedArticles(userIdx, limit, offset);
+    res.json({
+        'articles': articles,
+    });
+});
+/**
+ * 뉴스 저장
+ */
+userRouter.post('/article/save', async(req: Request, res: Response) => {
+    let data:any = req.body;
+    const userIdx = await findUserIdxFromUid(data.uid);
+    const articleType = data.articleType;
+    const articleIdx = data.articleIdx;
+
+    const saveResult:boolean = await saveOrUnsaveArticle(userIdx, articleType, articleIdx, true);
+    if (saveResult) {
+        res.sendStatus(200);
+    } else {
+        res.sendStatus(400);
+    }
+});
+/**
+ * 뉴스 저장 취소
+ */
+userRouter.post('/article/unsave', async(req: Request, res: Response) => {
+    let data:any = req.body;
+    const userIdx = await findUserIdxFromUid(data.uid);
+    const articleType = data.articleType;
+    const articleIdx = data.articleIdx;
+
+    const saveResult:boolean = await saveOrUnsaveArticle(userIdx, articleType, articleIdx, false);
+    if (saveResult) {
+        res.sendStatus(200);
+    } else {
+        res.sendStatus(400);
+    }
 });
 
 export default userRouter;

@@ -188,3 +188,86 @@ export async function insertReadLog(userIdx:number, articleType:string, articleI
         throw err;
     }
 }
+
+/**
+ * 유저가 저장한 항목들을 불러오기
+ */
+export async function getUserSavedArticles(userIdx:number, limit:number = -1, offset:number = 0) {
+    let searchSavedSql = "SELECT user_saved_articles.idx as saved_idx, user_saved_articles.article_type, user_saved_articles.article_idx as article_idx," +
+        " CASE user_saved_articles.article_type WHEN 'insight' THEN insights.title WHEN 'summary' THEN media_summaries.title WHEN 'news' THEN news.title ELSE news.title END AS article_title," +
+        " CASE user_saved_articles.article_type WHEN 'insight' THEN insights.url WHEN 'summary' THEN media_summaries.url WHEN 'news' THEN news.url ELSE news.url END AS article_url," +
+        " IF(user_view_logs.idx IS NOT NULL, 1, 0) as viewed" +
+        " FROM user_saved_articles" +
+        " LEFT JOIN news ON article_type='news' AND article_idx=news.idx" +
+        " LEFT JOIN insights ON article_type='insight' AND article_idx=insights.idx" +
+        " LEFT JOIN media_summaries ON article_type='summary' AND article_idx=media_summaries.idx" +
+        " LEFT JOIN user_view_logs ON user_saved_articles.article_type = user_view_logs.article_type AND user_saved_articles.article_idx = user_view_logs.article_idx" +
+        " WHERE user_saved_articles.user_idx = ? AND user_saved_articles.`status` = 1" +
+        " AND (news.`status` = 1 OR insights.`status` = 1 OR media_summaries.`status` = 1)" +
+        " GROUP BY saved_idx ORDER BY user_saved_articles.updated_time DESC";
+    if(limit > 0) {
+        searchSavedSql += " LIMIT " + limit;
+    }
+    if(offset > 0) {
+        searchSavedSql += " OFFSET " + offset;
+    }
+    try {
+        const [queryResults] = await pool.promise().query(searchSavedSql, [userIdx]);
+        return queryResults;
+    } catch(err) {
+        console.error(err.message);
+        throw err;
+    }
+}
+
+/**
+ * 유저가 특정 항목을 저장했는지 확인
+ */
+export async function checkUserSavedArticle(userIdx:number, articleType:string, articleIdx:number) {
+    let searchSavedSql = "SELECT * FROM user_saved_articles WHERE user_idx = ? AND article_type = ? AND article_idx = ? AND `status` = 1 LIMIT 1";
+    try {
+        const [queryResult] = await pool.promise().query(searchSavedSql, [userIdx, articleType, articleIdx]);
+        if (!queryResult[0]) {
+            return false;
+        } else {
+            return true;
+        }
+    } catch(err) {
+        console.error(err.message);
+        return false;
+    }
+}
+
+/**
+ * 유저가 항목을 저장 또는 저장 취소
+ */
+export async function saveOrUnsaveArticle(userIdx:number, articleType:string, articleIdx:number, save:boolean = true) {
+    let sql;
+    if (save) {
+        let searchSavedSql = "SELECT * FROM user_saved_articles WHERE user_idx = ? AND article_type = ? AND article_idx = ? LIMIT 1";
+        try {
+            const [queryResult] = await pool.promise().query(searchSavedSql, [userIdx, articleType, articleIdx]);
+            if (!queryResult[0]) {
+                sql = "INSERT INTO user_saved_articles(user_idx, article_type, article_idx) VALUES(?, ?, ?)";
+            } else {
+                if (queryResult[0].status == 1) {
+                    return true;
+                } else {
+                    sql = "UPDATE user_saved_articles SET `status` = 1 WHERE user_idx = ? AND article_type = ? AND article_idx = ?";
+                }
+            }
+        } catch(err) {
+            console.error(err.message);
+            return false;
+        }
+    } else {
+        sql = "UPDATE user_saved_articles SET `status` = 0 WHERE user_idx = ? AND article_type = ? AND article_idx = ?";
+    }
+    try {
+        const [queryResult] = await pool.promise().query(sql, [userIdx, articleType, articleIdx]);
+        return true;
+    } catch(err) {
+        console.error(err.message);
+        return false;
+    }
+}
