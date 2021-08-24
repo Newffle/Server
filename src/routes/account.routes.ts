@@ -87,6 +87,12 @@ accountRouter.post('/login', async (req: Request, res: Response) => {
     }
 });
 
+accountRouter.post('/logout', async (req: Request, res: Response) => {
+    let data:any = req.body;
+    console.log('data:', data);
+    res.sendStatus(200);
+});
+
 accountRouter.post('/reset_password', async (req:Request, res:Response) => {
     let data:any = req.body;
     const email:string = data.email;
