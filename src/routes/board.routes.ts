@@ -16,6 +16,7 @@ boardRouter.post('/meta', async (req: Request, res: Response) => {
     const insights = await getPartnerInsights(3);
     const summaries = await getMediaSummaries(3);
     const banners = await getNativeBanners();
+    const saved = await getUserSavedArticles(userIdx, 3);
 
     res.json({
         'userPlan': userPlan,
