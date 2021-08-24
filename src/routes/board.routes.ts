@@ -1,7 +1,7 @@
 import {Request, Response, Router} from 'express';
 import {getMediaSummaries, getNativeBanners, getPartnerInsights} from "../libraries/board_library";
 import {getPopularNewsWithInteractions} from "../libraries/news_library";
-import {getUserCurrentPlan} from "../libraries/user_library";
+import {getUserCurrentPlan, getUserSavedArticles} from "../libraries/user_library";
 import {findUserIdxFromUid} from "../libraries/account_library";
 
 const boardRouter = Router();
@@ -23,6 +23,7 @@ boardRouter.post('/meta', async (req: Request, res: Response) => {
         'insights': insights,
         'summaries': summaries,
         'banners': banners,
+        'saved': saved,
     });
 });
 
